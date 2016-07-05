@@ -32,12 +32,13 @@ usr_input = gets.chomp
     id = usr_id.to_i
     Contact.find(id)
   else usr_input == 'search'
-    search_term = gets.chomp.downcase
-
+    search_term = gets.chomp
     contacts = Contact.search(search_term)
-    contacts.each do |contact|
-      puts contact.name + " " + contact.email
-    end
+    puts contacts.inspect
+    # binding.pry
+    # contacts.each do |contact|
+      # puts contact.name + " " + contact.email
+    # end
   end
 
 end
