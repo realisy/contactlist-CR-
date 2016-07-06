@@ -9,17 +9,26 @@ class ContactList
   puts "	list 	- List all contacts"
   puts "	show 	- Show a contact"
   puts "	search 	- Search contacts"
+  puts "	update 	- Update contact"
+  puts "	destroy	- Destroy contact"
+
 
 usr_input = gets.chomp
 
 	if usr_input == 'list'
-		line_num = 0
-		Contact.all.each do |person|
-		line_num += 1
-		puts "#{line_num}: #{person.name} (#{person.email})"
+    list = Contact.all
+    # binding.pry
+    line_num = 0
+    list.each do |person|
+      person.each do |info|
+        info.inspect
+      end
+      line_num += 1
+      puts "#{person['id']}: #{person['name']} - #{person['email']}"
     end
 		puts '---'
 		puts "#{line_num} records total"
+    # binding.pry
   elsif usr_input == 'new'
     puts "Please enter your full name"
     new_name = gets.chomp
@@ -31,7 +40,28 @@ usr_input = gets.chomp
     usr_id = gets.chomp
     id = usr_id.to_i
     Contact.find(id)
-  else usr_input == 'search'
+  elsif usr_input == 'update'
+    puts "Enter user id to update"
+    usr_id = gets.chomp
+    id = usr_id.to_i
+    the_contact = Contact.find(id)
+    # binding.pry
+    if the_contact == "not found"
+      puts "Please enter your full name"
+      new_name = gets.chomp
+      puts "Please enter your email address"
+      new_email = gets.chomp
+      Contact.create(new_name, new_email)
+    else
+      puts "Type your name"
+      new_name = gets.chomp
+      the_contact.name = new_name
+      puts "Type your email"
+      new_email = gets.chomp
+      the_contact.email = new_email
+      the_contact.save
+    end
+  elsif usr_input == 'search'
     search_term = gets.chomp
     contacts = Contact.search(search_term)
     puts contacts.inspect
@@ -39,6 +69,12 @@ usr_input = gets.chomp
     # contacts.each do |contact|
       # puts contact.name + " " + contact.email
     # end
+  else usr_input == 'destroy'
+    puts "Enter user id"
+    usr_id = gets.chomp
+    id = usr_id.to_i
+    the_contact = Contact.find(id)
+    the_contact.destroy
   end
 
 end

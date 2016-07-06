@@ -4,7 +4,7 @@ require 'pry'
 
 class Contact
 
-  attr_accessor :name, :email
+  attr_accessor :id, :name, :email
 
   def initialize(name, email)
     @name = name
@@ -19,9 +19,32 @@ class Contact
     user: 'development',
     password: 'development'
     )
+    # binding.pry
+    if Contact.find(id) == "not found"
+      puts 'Creating contacts...'
+      conn.exec_params('INSERT INTO contacts (name, email) VALUES ($1, $2);', [name, email])
+    else
+      puts 'Updating contacts...'
+      conn.exec_params('UPDATE contacts SET name = $1, email = $2 WHERE id = $3::int;', [name, email, id])
+    end
 
-    puts 'Creating contacts...'
-    conn.exec_params('INSERT INTO contacts (name, email) VALUES ($1, $2);', [name, email])
+    puts 'Closing the connection...'
+    conn.close
+
+    puts 'DONE'
+  end
+
+  def destroy
+    puts 'Connecting to the database...'
+    conn = PG.connect(
+    host: 'localhost',
+    dbname: 'contacts',
+    user: 'development',
+    password: 'development'
+    )
+
+    puts 'Destroying contact'
+    conn.exec('DELETE FROM contacts WHERE id = $1::int;', [id])
 
     puts 'Closing the connection...'
     conn.close
@@ -41,16 +64,24 @@ class Contact
       )
 
       puts 'Finding contacts...'
-      conn.exec('SELECT * FROM contacts;') do |results|
-        results.each do |contact|
-          puts contact.inspect
-        end
+      a = []
+      all = conn.exec('SELECT * FROM contacts;').each do |result|
+        a << result
       end
+      # binding.pry
 
       puts 'Closing the connection...'
       conn.close
 
       puts 'DONE'
+      a
+    end
+
+    def update(id)
+      the_contact = Contact.find(id)
+      the_contact.name = new_name
+      the_contact.email = new_email
+      the_contact.save(new_name, new_email)
     end
 
     def create(name, email)
@@ -76,8 +107,15 @@ class Contact
       # binding.pry
         if result.values.empty?
           puts "not found"
+          return "not found"
         else
           puts result.values.flatten!.inspect
+          new_contact = result[0]
+          # binding.pry
+          contact = Contact.new(new_contact['name'],             new_contact['email'])
+          contact.id = new_contact['id']
+          return contact
+          # return result.values.flatten!.inspect
         end
 
       puts 'Closing the connection...'
